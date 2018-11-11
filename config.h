@@ -1,27 +1,27 @@
-/************************ Adafruit IO Config *******************************/
+// Adafruit IO Config
 
-// visit io.adafruit.com if you need to create an account,
-// or if you need your Adafruit IO key.
-#define IO_USERNAME    "xxxxxx"
-#define IO_KEY         "xxxxxxxx"
+#define AIO_USERNAME      "xxxxxx"
+#define AIO_KEY           "xxxxxx"
+//#define AIO_USERNAME    "xxxxxx"
+//#define AIO_KEY         "xxxxxxxx"
+#define AIO_door_feed     "xxxxxx"
+#define AIO_battery_feed  "xxxxxx"
 
-/******************************* WIFI **************************************/
-
+// WiFi config
 // the AdafruitIO_WiFi client will work with the following boards:
 //   - HUZZAH ESP8266 Breakout -> https://www.adafruit.com/products/2471
 //   - Feather HUZZAH ESP8266 -> https://www.adafruit.com/products/2821
 //   - Feather M0 WiFi -> https://www.adafruit.com/products/3010
 //   - Feather WICED -> https://www.adafruit.com/products/3056
 
-#define WIFI_SSID       "xxxxx"
-#define WIFI_PASS       "xxxxx"
+#define WIFI_SSID       "xxxxxx"
+#define WIFI_PASS       "xxxxxx"
 //#define WIFI_SSID       "xxxxx"
 //#define WIFI_PASS       "xxxxx"
 
 // comment out the following two lines if you are using fona or ethernet
 #include "AdafruitIO_WiFi.h"
-AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
-
+AdafruitIO_WiFi io(AIO_USERNAME, AIO_KEY, WIFI_SSID, WIFI_PASS);
 
 /******************************* FONA **************************************/
 
@@ -31,7 +31,7 @@ AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
 // uncomment the following two lines for 32u4 FONA,
 // and comment out the AdafruitIO_WiFi client in the WIFI section
 // #include "AdafruitIO_FONA.h"
-// AdafruitIO_FONA io(IO_USERNAME, IO_KEY);
+// AdafruitIO_FONA io(AIO_USERNAME, AIO_KEY);
 
 
 /**************************** ETHERNET ************************************/
@@ -42,4 +42,4 @@ AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
 // uncomment the following two lines for ethernet,
 // and comment out the AdafruitIO_WiFi client in the WIFI section
 // #include "AdafruitIO_Ethernet.h"
-// AdafruitIO_Ethernet io(IO_USERNAME, IO_KEY);
+// AdafruitIO_Ethernet io(AIO_USERNAME, AIO_KEY);

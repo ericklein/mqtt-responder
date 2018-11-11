@@ -6,41 +6,24 @@
   See README.md for target information, revision history, feature requests, etc.
 */
 
-/************************** Configuration ***********************************/
-
 // setup information for Adafruit IO and physical network device
 #include "config.h"
 
 // Pin connections
-#define DOOR 13
-#define LED_PIN 0
+#define relay_trigger_PIN 12
 
 // deep sleep length before checking door state in seconds
-#define SLEEP_LENGTH 18e7
+// #define SLEEP_LENGTH 18e7
 
 // set up the 'digital' feed
-AdafruitIO_Feed *door = io.feed("door");
+AdafruitIO_Feed *door = io.feed(AIO_door_feed);
 
 void setup() {
-
-   // set led pin as a digital output
-  pinMode(LED_PIN, OUTPUT);
- 
-  // start the serial connection
+  pinMode(relay_trigger_PIN, OUTPUT);
+  // start the serial connection for debug messages
   Serial.begin(115200);
- 
-  // wait for serial monitor to open
-  while(! Serial);
- 
   // connect to io.adafruit.com
-  Serial.print("Connecting to Adafruit IO");
   io.connect();
- 
-  // set up a message handler for the 'door' feed.
-  // the handleMessage function (defined below)
-  // will be called whenever a message is
-  // received from adafruit io.
-door->onMessage(handleMessage);
  
   // wait for a connection
   while(io.status() < AIO_CONNECTED) {
@@ -51,33 +34,29 @@ door->onMessage(handleMessage);
   // we are connected
   Serial.println();
   Serial.println(io.statusText());
+
+  // message handler for the 'door' feed ,will be called whenever a message is received from adafruit io
+  door->onMessage(handleMessage);
 }
 
 void loop() {
-
- // io.run(); is required for all sketches.
-  // it should always be present at the top of your loop
-  // function. it keeps the client connected to
-  // io.adafruit.com, and processes any incoming data.
+ // io.run() keeps the client connected to io.adafruit.com and processes any incoming data
   io.run();
 }
 
-// this function is called whenever an 'digital' feed message
-// is received from Adafruit IO. it was attached to
-// the 'digital' feed in the setup() function above.
-void handleMessage(AdafruitIO_Data *data) {
- 
-  Serial.print("received <- ");
- 
+// handles Adafruit IO feed message that was instantiated in setup()
+void handleMessage(AdafruitIO_Data *data) { 
   if(data->toPinLevel() == HIGH)
    { // door is open
-    Serial.println("Door is open");}
+    Serial.println("Door is open");
+    digitalWrite(relay_trigger_PIN, LOW);
+    }
     else
-    {Serial.println("Door closed");}
-  // write the current state to the led
-  digitalWrite(LED_PIN, data->toPinLevel());
+    {Serial.println("Door is closed");
+     digitalWrite(relay_trigger_PIN, HIGH);
+    }
 
-//  // we are done here. go back to sleep.
+//  deep sleep the ESP8266 for specified time frame
 //  Serial.println("I'm going into deep sleep mode");
-// ESP.deepSleep(SLEEP_LENGTH);
+//  ESP.deepSleep(SLEEP_LENGTH);
 }
