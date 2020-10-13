@@ -27,10 +27,8 @@ Status light triggered by changes in MQTT feed
 ### Issues
 
 ### Feature Requests
-- 111118: [P2]; Handle error condition where connection to Adafruit IO does not happen
-- 100120: [P1]; support MQTT brokers
-- 100720: [P3]; try and integrate two MQTT code paths?
-- 100720: [P2]; implement MQTT QoS and Will
+- 100120[P3]; validate Ethernet code
+- 100720[P2]; MQTT QoS and Will
 
 ### Revisions
 - 102118: First version, branched from Adafruit IO read example
@@ -47,4 +45,9 @@ Status light triggered by changes in MQTT feed
 	- removed SLEEP support
 	- removed Adafruit IO API support
 	- [FR]100120: [P1]; Support Adafruit IO MQTT
+	- [FR]111118: [P2]; Handle error condition where connection to Adafruit IO does not happen
 	- untested code for MQTT brokers
+	- untested Ethernet code
+- 101220
+	- [FR]100120[P1]; support MQTT brokers -> implemented
+	- [FR]100720[P3]; try to integrate two MQTT code paths? -> completed using Adafruit MQTT library for Adafruit IO and MQTT brokers

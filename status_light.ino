@@ -10,17 +10,13 @@
 #define DEBUG     // Output to the serial port
 //#define RJ45    // use Ethernet to send data to cloud services
 #define WIFI      // use WiFi to send data to cloud services
+//#define ADAFRUITIO
 
 // relay featherwing support
 #define relayTriggerPIN 12
 
 // Adafruit IO and network device setup
 #include "secrets.h"
-
-#include "Adafruit_MQTT.h"
-#include "Adafruit_MQTT_Client.h"
-
-// GENERIC #include <ArduinoMqttClient.h>
 
 #ifdef WIFI
   #if defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT) || defined(ARDUINO_AVR_UNO_WIFI_REV2)
@@ -46,16 +42,14 @@
   EthernetClient client;
 #endif
 
-Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, MQTT_PORT, AIO_USERNAME, AIO_KEY);
-
-// GENERIC
-// #include <ArduinoMqttClient.h>
-// MqttClient mqttClient(client);
-
-// GENERIC MQTT client and topic names
-// char statusLightTopic[] = "status-light";
-
-Adafruit_MQTT_Subscribe statusLight = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/status-light");
+#include "Adafruit_MQTT.h"
+#include "Adafruit_MQTT_Client.h"
+Adafruit_MQTT_Client mqtt(&client, MQTT_BROKER, MQTT_PORT, MQTT_USER, MQTT_PASS);
+#ifdef ADAFRUITIO
+  Adafruit_MQTT_Subscribe statusLightSub = Adafruit_MQTT_Subscribe(&mqtt, MQTT_USER "/feeds/status-light");
+#else
+  Adafruit_MQTT_Subscribe statusLightSub = Adafruit_MQTT_Subscribe(&mqtt, MQTT_TOPIC);
+#endif
 
 void setup() 
 {
@@ -70,77 +64,85 @@ void setup()
 
   pinMode(relayTriggerPIN, OUTPUT);
 
-  // Connect to WiFi access point.
-  #ifdef DEBUG
-    Serial.print("Connecting to ");
-    Serial.println(WIFI_SSID);
-  #endif
-
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
-  while (WiFi.status() != WL_CONNECTED) 
-  {
+  #ifdef WIFI
+    // Connect to WiFi access point.
     #ifdef DEBUG
-      Serial.print(".");
+      Serial.print("connecting to ");
+      Serial.println(WIFI_SSID);
     #endif
-    delay(500);
-  }
 
-  #ifdef DEBUG
-    Serial.println();  // finishes the status dots print
-    Serial.println("WiFi connected, IP address: ");
-    Serial.println(WiFi.localIP());
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
+    while (WiFi.status() != WL_CONNECTED) 
+    {
+      #ifdef DEBUG
+        Serial.print(".");
+      #endif
+      delay(500);
+    }
+
+    #ifdef DEBUG
+      Serial.println();  // finishes the status dots print
+      Serial.print("WiFi connected, IP address: ");
+      Serial.println(WiFi.localIP());
+    #endif
   #endif
 
-  // try to connect to the MQTT broker once you're connected to WiFi:
-  // while (!connectToBroker())
-  // {
-  //   Serial.println("attempting to connect to broker");
-  //   delay(1000);
-  // }
-  // Serial.println("connected to broker");
+  #ifdef RJ45
+    // Configure Ethernet CS pin, not needed if using default D10
+    //Ethernet.init(10);  // Most Arduino shields
+    //Ethernet.init(5);   // MKR ETH shield
+    //Ethernet.init(0);   // Teensy 2.0
+    //Ethernet.init(20);  // Teensy++ 2.0
+    //Ethernet.init(15);  // ESP8266 with Adafruit Featherwing Ethernet
+    //Ethernet.init(33);  // ESP32 with Adafruit Featherwing Ethernet
 
-  // set the credentials for the MQTT client:
-  // GENERIC mqtt.setId(clientID);
-  // GENERIC mqttClient.setUsernamePassword(SECRET_MQTT_USER, SECRET_MQTT_PASS);
-  mqtt.subscribe(&statusLight);
+    // Initialize Ethernet and UDP
+    if (Ethernet.begin(mac) == 0)
+    {
+      #ifdef DEBUG
+        Serial.println("Failed to configure Ethernet using DHCP");
+      #endif
+      // Check for Ethernet hardware present
+      if (Ethernet.hardwareStatus() == EthernetNoHardware)
+      {
+        #ifdef DEBUG
+          Serial.println("Ethernet hardware not found");
+        #endif
+      } 
+      else if (Ethernet.linkStatus() == LinkOFF) 
+      {
+        #ifdef DEBUG
+          Serial.println("Ethernet cable is not connected.");
+        #endif
+      }
+      while (1);
+    }
+    #ifdef DEBUG
+      Serial.print("IP number assigned by DHCP is ");
+      Serial.println(Ethernet.localIP());
+    #endif
+  #endif
+
+  mqtt.subscribe(&statusLightSub);
 }
 
 void loop()
 {
-  // Keep connection to MQTT broker open
-  // GENERIC
-  // mqttClient.poll();
-
-  //   if (!mqttClient.connected()) {
-  //   Serial.println("reconnecting");
-  //   connectToBroker();
-  // }
-
-  // // if a message comes in, read it:
-  // if (mqttClient.parseMessage() > 0) {
-  //   Serial.print("Got a message on topic: ");
-  //   Serial.println(mqttClient.messageTopic());
-  //   // read the message:
-  //   while (mqttClient.available()) {
-  //     // convert numeric string to an int:
-  //     int message = mqttClient.parseInt();
-  //     Serial.println(message);
-
   MQTT_connect();
 
   Adafruit_MQTT_Subscribe *subscription;
   while ((subscription = mqtt.readSubscription(5000))) 
   {
-    if (subscription == &statusLight)
+    if (subscription == &statusLightSub)
     {
-      if (strcmp((char *)statusLight.lastread, "On") == 0)
+      if (strcmp((char *)statusLightSub.lastread, "On") == 0)
       {
         #ifdef DEBUG
           Serial.println("turning light on");
         #endif
         digitalWrite(relayTriggerPIN, HIGH);
       }
-      if (strcmp((char *)statusLight.lastread, "Off") == 0) 
+      if (strcmp((char *)statusLightSub.lastread, "Off") == 0) 
       {
         #ifdef DEBUG
           Serial.println("turning light off");
@@ -151,25 +153,26 @@ void loop()
   }
 }
 
-// Function to connect and reconnect as necessary to the MQTT server.
-// Should be called in the loop function and it will take care if connecting.
-void MQTT_connect() 
+void MQTT_connect()
+// Connects and reconnects to MQTT broker, call from loop() to maintain connection
 {
-  // Stop if already connected.
+  // Stop if already connected
   if (mqtt.connected()) 
   {
     return;
   }
-  #ifdef DEBUGF
-    Serial.println("Connecting to MQTT");
+  #ifdef DEBUG
+    Serial.println("connecting to MQTT broker");
   #endif
 
+  uint8_t ret;
   uint8_t retries = 3;
   while (mqtt.connect() != 0)
-  //while ((ret = mqtt.connect()) != 0)
   {
-    Serial.println(mqtt.connectErrorString(ret));
-    Serial.println("Retrying MQTT connection in 5 seconds...");
+    #ifdef DEBUG
+      Serial.println(mqtt.connectErrorString(ret));
+      Serial.println("retrying MQTT connection in 5 seconds");
+    #endif
     mqtt.disconnect();
     delay(5000);  // wait 5 seconds
     retries--;
@@ -179,22 +182,7 @@ void MQTT_connect()
       while (1);
     }
   }
-  Serial.println("MQTT Connected!");
+  #ifdef DEBUG
+    Serial.println("connected to MQTT broker");
+  #endif
 }
-
-// Generic
-// boolean connectToBroker()
-// {
-//   // if the MQTT client is not connected:
-//   if (!mqttClient.connect(broker, port))
-//   {
-//     // print out the error message:
-//     #ifdef DEBUG
-//       Serial.print("MOTT connection failed. Error no: ");
-//       Serial.println(mqttClient.connectError());
-//     #endif
-//     // return that you're not connected:
-//     return false;
-//   }
-//   return true;
-// }
