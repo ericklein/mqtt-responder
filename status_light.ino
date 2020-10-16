@@ -44,11 +44,11 @@
 
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
-Adafruit_MQTT_Client mqtt(&client, MQTT_BROKER, MQTT_PORT, MQTT_USER, MQTT_PASS);
+Adafruit_MQTT_Client mqtt(&client, MQTT_BROKER, MQTT_PORT, MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS);
 #ifdef ADAFRUITIO
   Adafruit_MQTT_Subscribe statusLightSub = Adafruit_MQTT_Subscribe(&mqtt, MQTT_USER "/feeds/status-light");
 #else
-  Adafruit_MQTT_Subscribe statusLightSub = Adafruit_MQTT_Subscribe(&mqtt, MQTT_TOPIC);
+  Adafruit_MQTT_Subscribe statusLightSub = Adafruit_MQTT_Subscribe(&mqtt, MQTT_SUB_TOPIC);
 #endif
 
 void setup() 
@@ -131,10 +131,16 @@ void loop()
   MQTT_connect();
 
   Adafruit_MQTT_Subscribe *subscription;
-  while ((subscription = mqtt.readSubscription(5000))) 
+  while ((subscription = mqtt.readSubscription(1000))) 
   {
     if (subscription == &statusLightSub)
     {
+      #ifdef DEBUG
+        Serial.print("Received: ");
+        Serial.print((char *)statusLightSub.lastread);
+        Serial.print(" from: ");
+        Serial.println(MQTT_SUB_TOPIC);
+      #endif
       if (strcmp((char *)statusLightSub.lastread, "On") == 0)
       {
         #ifdef DEBUG
@@ -151,6 +157,11 @@ void loop()
       }
     }
   }
+  // ping the server to keep the mqtt connection alive
+  if(! mqtt.ping()) 
+  {
+    mqtt.disconnect();
+  }
 }
 
 void MQTT_connect()
@@ -162,7 +173,8 @@ void MQTT_connect()
     return;
   }
   #ifdef DEBUG
-    Serial.println("connecting to MQTT broker");
+    Serial.print("connecting to MQTT broker: ");
+    Serial.println(MQTT_BROKER);
   #endif
 
   uint8_t ret;
@@ -171,14 +183,13 @@ void MQTT_connect()
   {
     #ifdef DEBUG
       Serial.println(mqtt.connectErrorString(ret));
-      Serial.println("retrying MQTT connection in 5 seconds");
+      Serial.println("retrying MQTT connection in 3 seconds");
     #endif
     mqtt.disconnect();
-    delay(5000);  // wait 5 seconds
+    delay(3000);
     retries--;
     if (retries == 0) 
     {
-      // basically die and wait for WDT to reset me
       while (1);
     }
   }

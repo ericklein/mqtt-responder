@@ -25,10 +25,11 @@ Status light triggered by changes in MQTT feed
 ### Learnings
 
 ### Issues
+101220[P1]; light is turning on/off at seemingly random intervals but I'm not sure messages are driving it
 
 ### Feature Requests
 - 100120[P3]; validate Ethernet code
-- 100720[P2]; MQTT QoS and Will
+- 100720[P2]; MQTT QoS 1
 
 ### Revisions
 - 102118: First version, branched from Adafruit IO read example
@@ -51,3 +52,5 @@ Status light triggered by changes in MQTT feed
 - 101220
 	- [FR]100120[P1]; support MQTT brokers -> implemented
 	- [FR]100720[P3]; try to integrate two MQTT code paths? -> completed using Adafruit MQTT library for Adafruit IO and MQTT brokers
+- 101520
+	- MQTT code improvements
