@@ -7,10 +7,13 @@
 */
 
 // Conditional compile flags
-#define DEBUG     // Output to the serial port
+//#define DEBUG     // Output to the serial port
 //#define RJ45    // use Ethernet to send data to cloud services
 #define WIFI      // use WiFi to send data to cloud services
 //#define ADAFRUITIO
+
+// Gloval variables
+unsigned long previousMQTTPingTime = 0;
 
 // relay featherwing support
 #define relayTriggerPIN 12
@@ -67,7 +70,7 @@ void setup()
   #ifdef WIFI
     // Connect to WiFi access point.
     #ifdef DEBUG
-      Serial.print("connecting to ");
+      Serial.print("WiFi connecting to ");
       Serial.println(WIFI_SSID);
     #endif
 
@@ -157,15 +160,24 @@ void loop()
       }
     }
   }
-  // ping the server to keep the mqtt connection alive
-  if(! mqtt.ping()) 
+  // ping the broker to keep the connection alive
+  if((millis() - previousMQTTPingTime) > MQTT_KEEP_ALIVE * 1000)
   {
-    mqtt.disconnect();
+    previousMQTTPingTime = millis();   
+    if(! mqtt.ping())
+    {
+      mqtt.disconnect();
+      #ifdef DEBUG
+        Serial.println("disconnected from broker because ping says no connection");
+      #endif
+    }
+    #ifdef DEBUG
+      Serial.println("pinged the broker to maintain connection");
+    #endif
   }
 }
 
 void MQTT_connect()
-// Connects and reconnects to MQTT broker, call from loop() to maintain connection
 {
   // Stop if already connected
   if (mqtt.connected()) 
@@ -173,7 +185,7 @@ void MQTT_connect()
     return;
   }
   #ifdef DEBUG
-    Serial.print("connecting to MQTT broker: ");
+    Serial.print("connecting to broker: ");
     Serial.println(MQTT_BROKER);
   #endif
 
@@ -183,7 +195,7 @@ void MQTT_connect()
   {
     #ifdef DEBUG
       Serial.println(mqtt.connectErrorString(ret));
-      Serial.println("retrying MQTT connection in 3 seconds");
+      Serial.println("retrying broker connection in 3 seconds");
     #endif
     mqtt.disconnect();
     delay(3000);
@@ -194,6 +206,6 @@ void MQTT_connect()
     }
   }
   #ifdef DEBUG
-    Serial.println("connected to MQTT broker");
+    Serial.println("connected to broker");
   #endif
 }

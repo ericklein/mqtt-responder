@@ -25,7 +25,7 @@ Status light triggered by changes in MQTT feed
 ### Learnings
 
 ### Issues
-101220[P1]; light is turning on/off at seemingly random intervals but I'm not sure messages are driving it
+	- [P3]101620: Log file shows status-light reconnecting although it has a connection, so the broker kills the old session?
 
 ### Feature Requests
 - 100120[P3]; validate Ethernet code
@@ -54,3 +54,6 @@ Status light triggered by changes in MQTT feed
 	- [FR]100720[P3]; try to integrate two MQTT code paths? -> completed using Adafruit MQTT library for Adafruit IO and MQTT brokers
 - 101520
 	- MQTT code improvements
+- 101620
+	- [P1]101620: Example ping code fires every loop() but docs say to ping infrequently within the keepalive window to avoid packet collision -> add timer loop to ping at MQTT_KEEP_ALIVE
+	- [P1]101220: light is turning on at seemingly random intervals. The new session is either publishing a new value or reading an older value at connection? -> think is was a retained value on the broker side causing the random activation event.
