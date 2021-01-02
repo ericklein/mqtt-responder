@@ -10,7 +10,6 @@
 //#define DEBUG     // Output to the serial port
 //#define RJ45    // use Ethernet to send data to cloud services
 #define WIFI      // use WiFi to send data to cloud services
-//#define ADAFRUITIO
 
 // Gloval variables
 unsigned long previousMQTTPingTime = 0;
@@ -31,9 +30,7 @@ unsigned long previousMQTTPingTime = 0;
   #endif
 
   WiFiClient client;
-
-  //use WiFiClientSecure for SSL
-  //WiFiClientSecure client;
+  // WiFiClientSecure client; // for SSL
 #endif
 
 #ifdef RJ45
@@ -48,11 +45,7 @@ unsigned long previousMQTTPingTime = 0;
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 Adafruit_MQTT_Client mqtt(&client, MQTT_BROKER, MQTT_PORT, MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS);
-#ifdef ADAFRUITIO
-  Adafruit_MQTT_Subscribe statusLightSub = Adafruit_MQTT_Subscribe(&mqtt, MQTT_USER "/feeds/status-light");
-#else
-  Adafruit_MQTT_Subscribe statusLightSub = Adafruit_MQTT_Subscribe(&mqtt, MQTT_SUB_TOPIC);
-#endif
+Adafruit_MQTT_Subscribe statusLightSub = Adafruit_MQTT_Subscribe(&mqtt, MQTT_SUB_TOPIC);
 
 void setup() 
 {
@@ -67,25 +60,57 @@ void setup()
 
   pinMode(relayTriggerPIN, OUTPUT);
 
-  #ifdef WIFI
-    // Connect to WiFi access point.
+ #ifdef WIFI
+    uint8_t tries = 1;
+    #define MAXTRIES 11
+
+    // Connect to WiFi access point
     #ifdef DEBUG
-      Serial.print("WiFi connecting to ");
+      Serial.print("Connecting to WiFI AP ");
       Serial.println(WIFI_SSID);
     #endif
 
+    // hostname has to come before WiFi.begin
+    WiFi.hostname(MQTT_CLIENT_ID);
+    // WiFi.setHostname(MQTT_CLIENT_ID); //for WiFiNINA
+
     WiFi.begin(WIFI_SSID, WIFI_PASS);
+
     while (WiFi.status() != WL_CONNECTED) 
     {
+      // Error handler - WiFi does not initially connect
       #ifdef DEBUG
-        Serial.print(".");
+        Serial.print("WiFi AP connect attempt ");
+        Serial.print(tries);
+        Serial.print("of");
+        Serial.print(MAXTRIES);
+        Serial.print(" in ");
+        Serial.print(tries*10);
+        Serial.println(" seconds");
       #endif
-      delay(500);
+      // use of delay OK as this is initialization code
+      delay(tries*10000);
+      tries++;
+      if (tries == MAXTRIES)
+      {
+        #ifdef DEBUG
+          Serial.print("FATAL error; can not connect to WiFi after");
+          Serial.print(MAXTRIES);
+          Serial.println(" attempts");
+        #endif
+        while (1)
+        {
+          // endless loop communicating fatal error
+          digitalWrite(relayTriggerPIN, HIGH);
+          delay(1000);
+          digitalWrite(relayTriggerPIN, LOW);
+          delay(1000);
+        }
+      }
     }
-
     #ifdef DEBUG
       Serial.println();  // finishes the status dots print
-      Serial.print("WiFi connected, IP address: ");
+      Serial.print("WiFi IP address is: ");
       Serial.println(WiFi.localIP());
     #endif
   #endif
@@ -102,10 +127,11 @@ void setup()
     // Initialize Ethernet and UDP
     if (Ethernet.begin(mac) == 0)
     {
+      // Error handler - Ethernet does not initialize
+      // generic error
       #ifdef DEBUG
-        Serial.println("Failed to configure Ethernet using DHCP");
+        Serial.println("FATAL error; Failed to configure Ethernet using DHCP");
       #endif
-      // Check for Ethernet hardware present
       if (Ethernet.hardwareStatus() == EthernetNoHardware)
       {
         #ifdef DEBUG
@@ -115,13 +141,20 @@ void setup()
       else if (Ethernet.linkStatus() == LinkOFF) 
       {
         #ifdef DEBUG
-          Serial.println("Ethernet cable is not connected.");
+          Serial.println("Ethernet cable is not connected");
         #endif
       }
-      while (1);
+      while (1)
+      {
+        // endless loop communicating fatal error
+        digitalWrite(relayTriggerPIN, HIGH);
+        delay(1000);
+        digitalWrite(relayTriggerPIN, LOW);
+        delay(1000;)
+      }
     }
     #ifdef DEBUG
-      Serial.print("IP number assigned by DHCP is ");
+      Serial.print("Ethernet IP address is: ");
       Serial.println(Ethernet.localIP());
     #endif
   #endif
@@ -179,7 +212,11 @@ void loop()
 
 void MQTT_connect()
 {
-  // Stop if already connected
+  uint8_t mqttErr;
+  uint8_t tries = 1;
+  #define MAXTRIES 3
+
+  // exit if already connected
   if (mqtt.connected()) 
   {
     return;
@@ -189,23 +226,40 @@ void MQTT_connect()
     Serial.println(MQTT_BROKER);
   #endif
 
-  uint8_t ret;
-  uint8_t retries = 3;
   while (mqtt.connect() != 0)
   {
+    // Error handler - can not connect to MQTT broker
     #ifdef DEBUG
-      Serial.println(mqtt.connectErrorString(ret));
-      Serial.println("retrying broker connection in 3 seconds");
+      Serial.println(mqtt.connectErrorString(mqttErr));
+      Serial.print("MQTT broker connect attempt ");
+      Serial.print(tries);
+      Serial.print("of");
+      Serial.print(MAXTRIES);
+      Serial.print(" in ");
+      Serial.print(tries*10);
+      Serial.println(" seconds");
     #endif
     mqtt.disconnect();
-    delay(3000);
-    retries--;
-    if (retries == 0) 
+    delay(tries*10000);
+    tries++;
+    if (tries == MAXTRIES)
     {
-      while (1);
+      #ifdef DEBUG
+        Serial.print("FATAL error; can not connect to MQTT broker after");
+        Serial.print(MAXTRIES);
+        Serial.println(" attempts");
+      #endif
+      while (1)
+      {
+        // endless loop communicating fatal error
+        digitalWrite(relayTriggerPIN, HIGH);
+        delay(1000);
+        digitalWrite(relayTriggerPIN, LOW);
+        delay(1000);
+      }
     }
   }
   #ifdef DEBUG
-    Serial.println("connected to broker");
+    Serial.println("reconnected to MQTT broker");
   #endif
 }
