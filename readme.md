@@ -3,33 +3,49 @@
 ## Purpose 
 Status light triggered by changes in MQTT feed
 
-### Contributors
+### Configuring targets
+- Set parameters in secrets.h (see config.h for list of required parameters)
+- Set parameters in config.h
+- common wire from light to COM on relay
+- hot wire from light to NO on relay
 
-### Software Dependencies not in Arduino Library Manager 
+### External Software Dependencies
+- ESP8266WiFi, WiFiUDP, ESP8266HTTPClient
+- Adafruit_MQTT
+- NTPClient
+- aq_network
 
-### BOM
-- 1x: Adafruit Feather Huzzah 8266 https://www.adafruit.com/product/2471
-- 1x: Adafruit Non-Latching Relay Featherwing https://www.adafruit.com/product/2895
-- 1x: AC powered (traffic) light
-
-### Pinouts
+### known, working BOM
+- MCU
+    - Adafruit Feather Huzzah 8266 https://www.adafruit.com/product/2471
+- Ethernet
+    - Particle Ethernet Featherwing: https://www.adafruit.com/product/4003
+    - Silicognition PoE Featherwing: https://www.crowdsupply.com/silicognition/poe-featherwing
+- WiFi
+    - Adafruit Feather Huzzah 8266 https://www.adafruit.com/product/2471
+- Relay
+	- Adafruit Non-Latching Relay Featherwing https://www.adafruit.com/product/2895
+- Light
+	- 1x: AC powered (traffic) light
 
 ### Information Sources
-- Adafruit Huzzah pinout - https://learn.adafruit.com/adafruit-huzzah-esp8266-breakout/pinouts
-- Relay setup - http://www.circuitbasics.com/setting-up-a-5v-relay-on-the-arduino/
-- ESP8266 Arduino from: https://github.com/esp8266/Arduino
-- MQTT
+- MQTT services
+    - https://hackaday.com/2017/10/31/review-iot-data-logging-services-with-mqtt/
 	- https://learn.adafruit.com/adafruit-io/mqtt-api
 	- https://learn.adafruit.com/mqtt-adafruit-io-and-you
+- Relay setup
+	- http://www.circuitbasics.com/setting-up-a-5v-relay-on-the-arduino/
 
-### Learnings
+### Issues
+- See GitHub Issues for project
+
+### Feature Requests
+- See GitHub Issues for project
 
 ### Issues
 - [P3]101620: MQTT broker log file shows status-light reconnecting although it has a connection, so the broker kills the old session?
-- [P2]102420: Move local MQTT server to named entry instead of IP address so DNS can resolve it if entry changes
 
 ### Feature Requests
-- [P3]100720; MQTT QoS 1
 - [P2]112920: audio alert
 
 ### Revisions
@@ -59,7 +75,6 @@ Status light triggered by changes in MQTT feed
 	- [P1]101620: Example ping code fires every loop() but docs say to ping infrequently within the keepalive window to avoid packet collision -> add timer loop to ping at MQTT_KEEP_ALIVE
 	- [P1]101220: light is turning on at seemingly random intervals. The new session is either publishing a new value or reading an older value at connection? -> think is was a retained value on the broker side causing the random activation event.
 - 122120
-	- [FR]100120 [P3]; validate Ethernet code -> code aligned with functioning status_light Ethernet code
 	- [FR]111020 [P3]: combine MQTT publish code blocks for AdafruitIO MQTT and generic MQTT -> complete
 - 123120
 	- [I]102420 [P1]; Need an error indicator for for non-DEBUG, while(1) errors, MQTT connection errors -> while(1) error handling improved and now blinks status light in unique pattern to indicate fatal error
