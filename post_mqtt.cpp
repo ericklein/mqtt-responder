@@ -96,7 +96,7 @@ extern bool internetAvailable;
       if (subscription == &statusLightSub)
       {
         debugMessage(String("Received: ") + ((char *)statusLightSub.lastread) + " from: " + MQTT_SUB_TOPIC); 
-        if (atol((char *)statusLightSub.lastread) > 1000)
+        if (atol((char *)statusLightSub.lastread) > THRESHOLD_VALUE)
         {
           debugMessage("turning light on");
           digitalWrite(relayTriggerPIN, HIGH);
