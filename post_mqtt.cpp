@@ -98,12 +98,12 @@ extern bool internetAvailable;
         debugMessage(String("Received: ") + ((char *)statusLightSub.lastread) + " from: " + MQTT_SUB_TOPIC); 
         if (atol((char *)statusLightSub.lastread) > THRESHOLD_VALUE)
         {
-          debugMessage("turning light on");
+          debugMessage("turning fan on");
           digitalWrite(relayTriggerPIN, HIGH);
         }
         else
         {
-          debugMessage("turning light off");
+          debugMessage("turning fan off");
           digitalWrite(relayTriggerPIN, LOW);
         }
       }

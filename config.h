@@ -7,7 +7,7 @@
 */
 
 // Conditional compile flags
-#define DEBUG	// Output to the serial port
+// #define DEBUG	// Output to the serial port
 //#define RJ45	// use Ethernet to send data to cloud services
 #define WIFI 	// use WiFi to send data to cloud services
 #define MQTT 	// always on, used for compatibility with library
@@ -22,7 +22,7 @@
 #define CONNECT_ATTEMPT_INTERVAL 10 // seconds between internet service connect attempts
 
 // set client ID; used by mqtt and wifi
-#define CLIENT_ID "lab_fan"
+#define CLIENT_ID "SL-fan"
 
 // select time zone, used by NTPClient
 // const int timeZone = 0;  	// UTC
@@ -32,7 +32,7 @@
 //const int timeZone = -7;  // USA PDT
 const int timeZone = -8;  // USA PST
 
-#define THRESHOLD_VALUE 1200
+#define THRESHOLD_VALUE 1000
 
  // used in aq_network.cpp
 const String weekDays[7] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
@@ -42,6 +42,6 @@ const String weekDays[7] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursd
 	#define MQTT_KEEP_ALIVE 300	// in seconds
 
 	// structure: site/room/device/data	
-	#define MQTT_SUB_TOPIC 		"7828/demo/rco2/co2"
+	#define MQTT_SUB_TOPIC 		"7828/master bedroom/aq/co2"
 	#define MQTT_PUB_TOPIC6		"7828/demo/sl/rssi"
 #endif
