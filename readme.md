@@ -1,7 +1,7 @@
-# Status light
+# MQTT Responder
 
 ## Purpose 
-Status light triggered by changes in MQTT feed
+Monitor MQTT feed(s) and respond to changes in the feed(s)
 
 ### Configuring targets
 - Set parameters in secrets.h (see config.h for list of required parameters)
