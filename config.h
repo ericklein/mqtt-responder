@@ -1,47 +1,27 @@
 /*
-  Project Name:   status light
-  Developer:      Eric Klein Jr. (temp2@ericklein.com)
-  Description:    Status light triggered by changes on MQTT broker
-  
-  See readme.md for target information, revision history, feature requests, etc.
+  Project Name:   status light 110v
+  Description:    public (non-secret) configuration data
 */
 
-// Conditional compile flags
-// #define DEBUG	// Output to the serial port
-//#define RJ45	// use Ethernet to send data to cloud services
-#define WIFI 	// use WiFi to send data to cloud services
-#define MQTT 	// always on, used for compatibility with library
+// Configuration Step 1: Create and/or configure secrets.h. Use secrets_template.h as guide to create secrets.h
+
+// Configuration Step 2: Set debug parameters
+// comment out to turn off; 1 = summary, 2 = verbose
+// #define DEBUG 1
+
+// Configuration variables that change rarely
+
+// Network
+// max connection attempts to network services
+const uint8_t networkConnectAttemptLimit = 3;
+// seconds between network service connect attempts
+const uint8_t networkConnectAttemptInterval = 10;
+
+const uint16_t networkMQTTKeepAliveInterval = 300; // seconds
+
+// Hardware
+// Sleep time in seconds if hardware error occurs
+const uint8_t hardwareRebootInterval = 10;
 
 // relay featherwing
-#define relayTriggerPIN 12
-
-// Sleep time if hardware error occurs in seconds
-#define HARDWARE_ERROR_INTERVAL 1
-
-#define CONNECT_ATTEMPT_LIMIT	3 // max connection attempts to internet services
-#define CONNECT_ATTEMPT_INTERVAL 10 // seconds between internet service connect attempts
-
-// set client ID; used by mqtt and wifi
-#define CLIENT_ID "SL-fan"
-
-// select time zone, used by NTPClient
-// const int timeZone = 0;  	// UTC
-//const int timeZone = 1; // Ireland
-//const int timeZone = -5;  // USA EST
-//const int timeZone = -4;  // USA EDT
-//const int timeZone = -7;  // USA PDT
-const int timeZone = -8;  // USA PST
-
-#define THRESHOLD_VALUE 1000
-
- // used in aq_network.cpp
-const String weekDays[7] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
-
-//set MQTT parameters
-#ifdef MQTT
-	#define MQTT_KEEP_ALIVE 300	// in seconds
-
-	// structure: site/room/device/data	
-	#define MQTT_SUB_TOPIC 		"7828/master bedroom/aq/co2"
-	#define MQTT_PUB_TOPIC6		"7828/demo/sl/rssi"
-#endif
+const uint8_t hardwareRelayPin = 12;
