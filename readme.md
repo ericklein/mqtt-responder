@@ -14,9 +14,7 @@ Monitor MQTT feed and activate status-light when appropriate
 - Adafruit_MQTT
 
 ### Bill of Materials (BOM)
-- MCU
-    - Adafruit Feather Huzzah 8266 https://www.adafruit.com/product/2471
-- WiFi
+- MCU/WiFi
     - Adafruit Feather Huzzah 8266 https://www.adafruit.com/product/2471
 - Relay
 	- Adafruit Non-Latching Relay Featherwing https://www.adafruit.com/product/2895
@@ -30,6 +28,11 @@ Monitor MQTT feed and activate status-light when appropriate
 	- https://learn.adafruit.com/mqtt-adafruit-io-and-you
 - Relay setup
 	- http://www.circuitbasics.com/setting-up-a-5v-relay-on-the-arduino/
+
+### Status messages
+- During initialization, setup()), will:
+	- blink on and off 3 times for 2 seconds to indicate a failure to connect to WiFi. The device will then reset and try again.
+	- blink on and off 3 times for 1 second to indicate that WiFi connected and the light works as well.
 
 ### Issues and Feature Requests
 - See GitHub Issues for project

@@ -40,21 +40,24 @@ void setup()
     debugMessage(String("Client ID: ") + DEVICE_ID,1);
   #endif
 
-  // activate and validate the status light
   pinMode(hardwareRelayPin, OUTPUT);
-  for (uint8_t loop = 1; loop <4;loop++)
-  {
-    lightFlash(1);
-  }
 
   // Setup network connection specified in config.h
   if (!networkConnect())
   {
     // alert user to the the connectivity problem
     debugMessage("unable to connect to WiFi",1);
-    while (1)
+    for (uint8_t loop = 1; loop < 4; loop++)
+      lightFlash(2);
+    ESP.restart();
+  }
+  else
+  {
+    // activate and validate the status light
+    for (uint8_t loop = 1; loop < 4; loop++)
       lightFlash(1);
   }
+  
   aq_mqtt.subscribe(&statusLightSub);
 }
 
@@ -90,12 +93,12 @@ void debugMessage(String messageText, uint8_t messageLevel)
 #ifdef DEBUG
   if (messageLevel <= DEBUG) {
     Serial.println(messageText);
-    Serial.flush();  // Make sure the message gets output (before any sleeping...)
+    Serial.flush();  // Make sure the message gets output before other functions
   }
 #endif
 }
 
-void lightFlash(int interval) // interval in seconds
+void lightFlash(uint8_t interval) // interval in seconds
 // flash the status light
 {
   digitalWrite(hardwareRelayPin, HIGH);
@@ -134,11 +137,3 @@ bool networkConnect()
   }
   return false;
 }
-
-// void networkDisconnect()
-// // Disconnect from WiFi network
-// {
-//   WiFi.disconnect();
-//   WiFi.mode(WIFI_OFF);
-//   debugMessage("power off: WiFi",1);
-// }
