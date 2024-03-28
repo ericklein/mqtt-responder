@@ -31,8 +31,10 @@ Monitor MQTT feed and activate status-light when appropriate
 
 ### Status messages
 - During initialization, setup()), will:
-	- blink on and off 3 times for 2 seconds to indicate a failure to connect to WiFi. The device will then reset and try again.
+	- blink on and off 3 times for 3 seconds to indicate a failure to connect to WiFi. The device will then reset and try again.
 	- blink on and off 3 times for 1 second to indicate that WiFi connected and the light works as well.
+- During regular operation, if the device can not connect to MQTT it will:
+	- blink on and off 3 times for 2 second to indicate that WiFi connected and the light works as well. If the problem persists, this will occur again and again.
 
 ### Issues and Feature Requests
 - See GitHub Issues for project

@@ -23,7 +23,7 @@ WiFiClient client;
 Adafruit_MQTT_Client aq_mqtt(&client, MQTT_BROKER, MQTT_PORT, DEVICE_ID, MQTT_USER, MQTT_PASS);
 // Adafruit_MQTT_Subscribe statusLightSub = Adafruit_MQTT_Subscribe(&aq_mqtt, MQTT_SUB_TOPIC);
 extern Adafruit_MQTT_Subscribe statusLightSub;
-extern void mqttConnect();
+extern bool mqttConnect();
 extern bool mqttDeviceWiFiUpdate(uint8_t rssi);
 extern bool mqttStatusLightCheck();
 
@@ -45,15 +45,15 @@ void setup()
   // Setup network connection specified in config.h
   if (!networkConnect())
   {
-    // alert user to the the connectivity problem
+    // alert user to the WiFi connectivity problem
     debugMessage("unable to connect to WiFi",1);
     for (uint8_t loop = 1; loop < 4; loop++)
-      lightFlash(2);
+      lightFlash(3);
     ESP.restart();
   }
   else
   {
-    // activate and validate the status light
+    // validate the status light
     for (uint8_t loop = 1; loop < 4; loop++)
       lightFlash(1);
   }
@@ -63,8 +63,28 @@ void setup()
 
 void loop()
 {
-  mqttConnect();
-  if (mqttStatusLightCheck())
+  // ensure we have a connection to MQTT
+  if (!mqttConnect())
+  {
+    for (uint8_t loop = 1; loop < 4; loop++)
+      lightFlash(2);
+  }
+  else
+  {
+    // Since we are subscribing only, we are required to ping the MQTT broker regularly
+    if((millis() - previousMQTTPingTime) > (networkMQTTKeepAliveInterval * 1000))
+    {
+      previousMQTTPingTime = millis();   
+      if(aq_mqtt.ping())
+        debugMessage("MQTT broker pinged to maintain connection",1);
+      else
+      {
+        debugMessage("unable to ping MQTT broker; disconnected",1);
+        aq_mqtt.disconnect();
+      }
+    }
+    // check to see if there is a status change for the light
+    if (mqttStatusLightCheck())
     {
       debugMessage("turning status light on",1);
       digitalWrite(hardwareRelayPin, HIGH);
@@ -73,17 +93,7 @@ void loop()
     {
       debugMessage("turning status light off",1);
       digitalWrite(hardwareRelayPin, LOW);
-    }
-  // Since we are subscribing only, we are required to ping the MQTT broker regularly
-  if((millis() - previousMQTTPingTime) > (networkMQTTKeepAliveInterval * 1000))
-  {
-    previousMQTTPingTime = millis();   
-    if(!aq_mqtt.ping())
-    {
-      debugMessage("unable to ping MQTT broker; disconnected",1);
-      aq_mqtt.disconnect();
-    }
-    debugMessage("MQTT broker pinged to maintain connection",1);
+    } 
   }
 }
 

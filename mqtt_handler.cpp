@@ -23,17 +23,17 @@ extern void debugMessage(String messageText, uint8_t messageLevel);
 extern Adafruit_MQTT_Client aq_mqtt;
 Adafruit_MQTT_Subscribe statusLightSub = Adafruit_MQTT_Subscribe(&aq_mqtt, MQTT_SUB_TOPIC);
 
-void mqttConnect()
+bool mqttConnect()
 // Connects and reconnects to MQTT broker, call as needed to maintain connection
 {
   // exit if already connected
   if (aq_mqtt.connected())
   {
-    debugMessage(String("Already connected to MQTT broker ") + MQTT_BROKER,1);
-    return;
+    debugMessage(String("Already connected to MQTT broker ") + MQTT_BROKER,2);
+    return true;
   }
 
-  // does this need to be signed?
+  // Q: does this need to be signed?
   int8_t mqttErr;
 
   for(uint8_t loop = 1; loop <= networkConnectAttemptLimit; loop++)
@@ -41,13 +41,16 @@ void mqttConnect()
     if ((mqttErr = aq_mqtt.connect()) == 0)
     {
       debugMessage(String("Connected to MQTT broker ") + MQTT_BROKER,1);
-      return;
+      return true;
     }
 
+    // report problem
     aq_mqtt.disconnect();
     debugMessage(String("MQTT connection attempt ") + loop + " of " + networkConnectAttemptLimit + " failed with error msg: " + aq_mqtt.connectErrorString(mqttErr),1);
     delay(networkConnectAttemptInterval*1000);
   }
+  // MQTT connection did not happen after multiple attempts
+  return false;
 } 
 
   String generateTopic(char *key)
