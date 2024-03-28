@@ -25,11 +25,11 @@ Adafruit_MQTT_Client aq_mqtt(&client, MQTT_BROKER, MQTT_PORT, DEVICE_ID, MQTT_US
 extern Adafruit_MQTT_Subscribe statusLightSub;
 extern bool mqttConnect();
 extern bool mqttDeviceWiFiUpdate(uint8_t rssi);
-extern bool mqttStatusLightCheck();
+extern uint8_t mqttStatusLightMessage();
 
 // Global variables
 unsigned long previousMQTTPingTime = 0;
-uint8_t rssi = 0;
+uint8_t rssi = 0; // 0 value used to indicate no WiFi connection
 
 void setup() 
 {
@@ -84,16 +84,13 @@ void loop()
       }
     }
     // check to see if there is a status change for the light
-    if (mqttStatusLightCheck())
+    uint8_t status = mqttStatusLightMessage();
+
+    if (status != 2) // 2 is no message received
     {
-      debugMessage("turning status light on",1);
-      digitalWrite(hardwareRelayPin, HIGH);
+      debugMessage(String("Light status is ") + (status == 1 ? "On" : "Off"),1);
+      digitalWrite(hardwareRelayPin, status);
     }
-    else
-    {
-      debugMessage("turning status light off",1);
-      digitalWrite(hardwareRelayPin, LOW);
-    } 
   }
 }
 

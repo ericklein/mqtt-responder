@@ -66,7 +66,9 @@ bool mqttConnect()
 
 bool mqttDeviceWiFiUpdate(uint8_t rssi)
 {
-  if (rssi!=0)
+  if (rssi = 0)
+    return false;
+  else
   {
     String topic;
     topic = generateTopic(VALUE_KEY_RSSI);  // Generate topic using config.h and data.h parameters
@@ -88,22 +90,17 @@ bool mqttDeviceWiFiUpdate(uint8_t rssi)
   }
 }
 
-bool mqttStatusLightCheck()
+uint8_t mqttStatusLightMessage()
 {
   Adafruit_MQTT_Subscribe *subscription;
   while ((subscription = aq_mqtt.readSubscription(5000))) 
   {
     if (subscription == &statusLightSub)
     {
-      debugMessage(String("Received '") + ((char *)statusLightSub.lastread) + "' from: " + MQTT_SUB_TOPIC,1); 
-      if (atol((char *)statusLightSub.lastread) == 1)
-      {
-        return true;
-      }
-      else
-      {
-        return false;
-      }
+      debugMessage(String("Received '") + ((char *)statusLightSub.lastread) + "' from " + MQTT_SUB_TOPIC,1); 
+      return (atol((char *)statusLightSub.lastread) == 1) ? 1 : 0;
     }
   }
+  // no message
+  return 2;
 }
