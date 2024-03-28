@@ -34,7 +34,7 @@ Monitor MQTT feed and activate status-light when appropriate
 	- blink on and off 3 times for 1 second to indicate that WiFi connected and the light works as well.
 	- blink on and off 3 times for 3 seconds to indicate a failure to connect to WiFi. The device will then reset and try again.
 - During regular operation, if the device can not connect to MQTT it will:
-	- blink on and off 3 times for 2 second to indicate that WiFi connected and the light works as well. If the problem persists, this will occur again and again.
+	- blink on and off 3 times for 2 second. If the problem persists, this will occur again and again.
 
 ### Issues and Feature Requests
 - See GitHub Issues for project
